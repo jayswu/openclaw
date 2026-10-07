@@ -97,8 +97,9 @@ the Gateway already runs inside a managed Google Cloud environment.
         export GOOGLE_CLOUD_LOCATION="us-central1"
         ```
 
-        Without a project, runs fail earlier with `Vertex AI requires a
-        project ID`.
+        `GCLOUD_PROJECT` is also accepted for the project. Without a project,
+        runs fail with `Vertex AI requires a project ID. Set GOOGLE_CLOUD_PROJECT/GCLOUD_PROJECT or pass project in options.`
+        Without a location, the error is `Vertex AI requires a location. Set GOOGLE_CLOUD_LOCATION or pass location in options.`
       </Step>
       <Step title="Credential: automatic discovery or manual sentinel">
         With a recognized ADC file (created by
@@ -118,15 +119,20 @@ the Gateway already runs inside a managed Google Cloud environment.
         ```
 
         <Warning>
-        Any other stored value — including a valid access token from
-        `gcloud auth print-access-token` — is sent as an API key header and
-        rejected by Vertex with `401 UNAUTHENTICATED`.
+        Other stored values are sent in the `x-goog-api-key` header, not as
+        ADC credentials. Do not paste an OAuth access token from
+        `gcloud auth print-access-token`: it is not an API key and can cause
+        an authentication error such as `401 UNAUTHENTICATED`.
         </Warning>
       </Step>
-      <Step title="Verify the model is available">
+      <Step title="List the Vertex catalog">
         ```bash
-        openclaw models list --provider google-vertex
+        openclaw models list --refresh --all --provider google-vertex
         ```
+
+        `--all` includes models you have not configured. `--refresh` populates
+        the local catalog when it has not been loaded yet; it does not query
+        a live Vertex model inventory or verify that ADC can obtain a token.
       </Step>
     </Steps>
 
