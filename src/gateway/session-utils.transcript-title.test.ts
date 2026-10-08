@@ -165,7 +165,11 @@ test("does not hydrate named transcript payloads for scalar title-only rows", as
 
       // A preview request still reads the same persisted payload and preserves every title.
       const previews = await render(true);
-      expect(queries.textBytes.events).toBeGreaterThan(NAMED_PAYLOAD.length * titles.length);
+      // Selected reads return compressed payloads (event_zstd) decoded after SQLite (#166778),
+      // so the proof is the payload read plus the decoded body crossing JSON.parse — not
+      // expanded SQLite text.
+      expect(queries.textBytes.events + queries.blobBytes.events).toBeGreaterThan(0);
+      expect(parse.mock.calls.some(([json]) => json.includes(NAMED_PAYLOAD_MARKER))).toBe(true);
       expect(previews.every((row) => row.lastMessagePreview?.startsWith("Preview"))).toBe(true);
       expect(JSON.stringify(withoutPreviews(previews))).toBe(JSON.stringify(titles));
       parse.mockRestore();
